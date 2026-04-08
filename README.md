@@ -1,8 +1,10 @@
-# Raspberry Pi 4 K3s Cluster Infrastructure - Complete Guide
+# Raspberry Pi 4 K3s Cluster Infrastructure - Complete Guide (Rocky Linux)
 
 ## Quick Start
 
-Welcome to your complete infrastructure automation framework! This guide provides everything you need to build, deploy, and manage a Raspberry Pi 4 cluster running Debian, K3s (Kubernetes), Prometheus, Grafana, and Cloudflare Agent - all **completely free**.
+Welcome to your complete infrastructure automation framework! This guide provides everything you need to build, deploy, and manage a Raspberry Pi 4 cluster running Rocky Linux 9, K3s (Kubernetes), Prometheus, Grafana, and Cloudflare Agent - all **completely free**.
+
+**Note:** This is the Rocky Linux version. For Debian version, see the legacy guides.
 
 ---
 
@@ -57,8 +59,8 @@ Follow the guides in order:
 
 | Goal | Document | Time |
 |------|----------|------|
-| Set up 1 Pi | `01_DEBIAN_INSTALLATION.md` | 1-2h |
-| Automate config | `02_ANSIBLE_SETUP.md` | 1h |
+| Set up 1 Pi (Rocky) | `01_DEBIAN_INSTALLATION.md` (updated for Rocky) | 1-2h |
+| Automate config | `02_ANSIBLE_SETUP.md` (dnf & firewalld) | 1h |
 | Deploy K3s | `03_K3S_DEPLOYMENT.md` | 1-2h |
 | Add monitoring | `04_PROMETHEUS_GRAFANA.md` | 1-2h |
 | Configure DNS | `05_CLOUDFLARE_AGENT.md` | 1h |
@@ -108,13 +110,13 @@ Follow the guides in order:
 │            Your Control Machine                 │
 │   (Laptop/Desktop with Ansible)                │
 └────────────┬────────────────────────────────────┘
-             │ SSH & Ansible
+             │ SSH & Ansible (dnf, firewalld)
     ┌────────┴──────────────────────┐
     │                               │
 ┌───▼──────────────────┐   ┌───────▼─────────────┐
 │  Raspberry Pi 1      │   │  Raspberry Pi 2+    │
 │  (Master/Worker)     │   │  (Workers)          │
-│  - Debian 12         │   │  - Debian 12        │
+│  - Rocky Linux 9     │   │  - Rocky Linux 9    │
 │  - K3s Master        │   │  - K3s Agent        │
 │  - Prometheus        │   │  - Node Exporter    │
 │  - Grafana           │   │  - Cloudflare Agent │

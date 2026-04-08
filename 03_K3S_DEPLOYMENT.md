@@ -1,10 +1,12 @@
-# Phase 3: K3s Cluster Advanced Configuration
+# Phase 3: K3s Cluster Advanced Configuration (Rocky Linux)
 
 ## Overview
 
-K3s (Kubernetes) is now installed on your cluster. This guide covers advanced configuration, networking, storage, and application deployment.
+K3s (Kubernetes) is now installed on your Rocky Linux cluster. This guide covers advanced configuration, networking, storage, and application deployment.
 
 **Estimated Time:** 1-2 hours
+
+**Note:** Firewall rules use firewalld (Rocky Linux default)
 
 ---
 

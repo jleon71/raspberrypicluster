@@ -1,10 +1,12 @@
-# Phase 4: Monitoring with Prometheus and Grafana
+# Phase 4: Monitoring with Prometheus and Grafana (Rocky Linux)
 
 ## Overview
 
-Set up comprehensive monitoring for your K3s cluster using Prometheus (metrics collection) and Grafana (visualization).
+Set up comprehensive monitoring for your Rocky Linux K3s cluster using Prometheus (metrics collection) and Grafana (visualization).
 
 **Estimated Time:** 1-2 hours
+
+**Note:** This guide works identically for Rocky Linux as Prometheus/Grafana are platform-agnostic
 
 ---
 

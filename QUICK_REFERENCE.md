@@ -1,6 +1,51 @@
-# Quick Reference Card
+# Quick Reference Card (Rocky Linux)
 
-## Essential Commands
+## Essential Commands (Rocky Linux specific)
+
+### Package Management (dnf - replace apt)
+```bash
+# Update all packages
+sudo dnf update -y
+
+# Install package
+sudo dnf install <package>
+
+# Remove package
+sudo dnf remove <package>
+
+# Search for package
+sudo dnf search <package>
+
+# List installed
+sudo dnf list installed
+```
+
+### Firewall Management (firewalld - replace ufw)
+```bash
+# Check firewall status
+sudo systemctl status firewalld
+
+# List all rules
+sudo firewall-cmd --list-all
+
+# Allow SSH (permanent)
+sudo firewall-cmd --permanent --add-service=ssh
+sudo firewall-cmd --reload
+
+# Allow custom port
+sudo firewall-cmd --permanent --add-port=6443/tcp
+sudo firewall-cmd --reload
+
+# List zones
+sudo firewall-cmd --get-zones
+
+# Set default zone
+sudo firewall-cmd --set-default-zone=public
+```
+
+---
+
+## Essential Kubernetes Commands
 
 ### Cluster Status
 ```bash
@@ -19,7 +64,7 @@ kubectl get svc -A
 kubectl port-forward svc/<name> 8080:80 -n <namespace>
 ```
 
-### Ansible
+### Ansible (with Rocky Linux)
 ```bash
 # Test connectivity
 ansible all -m ping
@@ -36,12 +81,18 @@ ansible-playbook playbooks/01-common.yml --syntax-check
 
 # Dry run
 ansible-playbook playbooks/01-common.yml -C
+
+# Run specific task
+ansible-playbook playbooks/01-common.yml --tags "firewall"
+
+# Check ansible user
+ansible all -m debug -a "var=ansible_user_id"
 ```
 
-### K3s Management
+### K3s Management (Rocky Linux)
 ```bash
 # On master node
-ssh debian@192.168.1.100
+ssh rocky@192.168.1.100
 
 # Check K3s status
 sudo systemctl status k3s
@@ -58,6 +109,9 @@ sudo k3s kubectl get pods -n kube-system -l component=etcd
 
 # View kubeconfig
 cat /etc/rancher/k3s/k3s.yaml
+
+# Check firewall rules for K3s
+sudo firewall-cmd --list-all | grep -E "6443|10250"
 ```
 
 ### Monitoring
@@ -137,30 +191,39 @@ K3s server: /var/lib/rancher/k3s/
 Kubeconfig: /etc/rancher/k3s/k3s.yaml
 ```
 
-### On Raspberry Pi
+### On Rocky Linux Raspberry Pi
 ```
 K3s server: /usr/local/bin/k3s
 K3s config: /etc/rancher/k3s/
 K3s data: /var/lib/rancher/k3s/
 K3s logs: journalctl -u k3s
 SSH config: ~/.ssh/
-Ansible: /home/debian/.ansible/
+Ansible: /home/rocky/.ansible/
+Firewall config: /etc/firewalld/
+SELinux config: /etc/selinux/config
 ```
 
 ---
 
 ## Troubleshooting Quick Fixes
 
-### Node Not Ready
+### Node Not Ready (Rocky Linux)
 ```bash
 # On the node
-ssh debian@<ip>
+ssh rocky@<ip>
 sudo systemctl restart k3s
 sudo systemctl status k3s
 sudo journalctl -u k3s -n 50
 
 # Check cgroups
 cat /proc/cmdline | grep cgroup
+
+# Check firewall isn't blocking
+sudo firewall-cmd --list-all
+
+# Check SELinux isn't blocking (if enforcing)
+sudo getenforce
+sudo setenforce 0  # temporary
 ```
 
 ### Pod Not Starting
@@ -217,24 +280,28 @@ kubectl exec -it pod/<agent> -n cloudflare -- cloudflared tunnel info
 
 ## Common Tasks
 
-### Add New Node
+### Add New Node (Rocky Linux)
 ```bash
-# 1. Flash Debian
-# Use Balena Etcher with new SD card
+# 1. Flash Rocky Linux
+# Use Balena Etcher with new SD card (get image from rockylinux.org)
 
 # 2. Initial setup
-ssh debian@<new-ip>
+ssh rocky@<new-ip>
 sudo hostnamectl set-hostname rpi-worker-N
 
 # 3. Update inventory
 # Edit inventory/hosts.ini
 
-# 4. Run Ansible
+# 4. Run Ansible (with dnf and firewalld)
 ansible-playbook playbooks/01-common.yml --limit rpi-worker-N
 ansible-playbook playbooks/02-k3s.yml --limit rpi-worker-N
 
-# 5. Verify
+# 5. Verify node joined
 kubectl get nodes
+
+# 6. Check firewall allowed
+ssh rocky@<new-ip>
+sudo firewall-cmd --list-all | grep -E "6443|10250"
 ```
 
 ### Remove Node
@@ -471,34 +538,31 @@ openssl enc -aes-256-cbc -d -in /tmp/backup/k8s-secrets.yaml.enc | kubectl apply
 
 ---
 
-## Useful One-Liners
+## Useful One-Liners (Rocky Linux + Kubernetes)
 
 ```bash
-# Scale deployment
+# Rocky Linux package management
+sudo dnf search <package>
+sudo dnf info <package>
+
+# Firewall rules
+sudo firewall-cmd --permanent --add-port=80/tcp && sudo firewall-cmd --reload
+sudo firewall-cmd --permanent --remove-port=80/tcp && sudo firewall-cmd --reload
+
+# SELinux
+sudo getenforce
+sudo setenforce 0  # temporary disable
+sudo setenforce 1  # enable
+
+# K3s cluster
 kubectl scale deployment myapp --replicas=3
-
-# Port forward
 kubectl port-forward svc/myapp 8080:80
-
-# Execute command in pod
 kubectl exec -it pod/myapp -- /bin/bash
-
-# Copy file from pod
 kubectl cp pod/myapp:/data/file.txt ./file.txt
-
-# Delete all pods in namespace
 kubectl delete pods --all -n myapp
-
-# Watch changes
 watch kubectl get pods -n myapp
-
-# Get pod IP addresses
 kubectl get pods -o wide
-
-# Export all resources
 kubectl get all -A -o yaml > backup.yaml
-
-# Find pods using PVC
 kubectl get pods --all-namespaces -o json | jq '.items[?(@.spec.volumes[*].persistentVolumeClaim)]'
 ```
 

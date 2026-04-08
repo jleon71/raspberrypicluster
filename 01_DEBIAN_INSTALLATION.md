@@ -1,13 +1,13 @@
-# Phase 1: Debian Installation on Raspberry Pi 4
+# Phase 1: Rocky Linux Installation on Raspberry Pi 4
 
 ## Overview
-This guide covers installing Debian 12 (Bookworm) on Raspberry Pi 4 with optimal configuration for running K3s.
+This guide covers installing Rocky Linux 9 (aarch64) on Raspberry Pi 4 with optimal configuration for running K3s.
 
 ---
 
 ## What You'll Do
 
-1. Download Debian image for Raspberry Pi
+1. Download Rocky Linux image for Raspberry Pi
 2. Write image to microSD card
 3. Initial boot and configuration
 4. Set up SSH access
@@ -22,6 +22,7 @@ This guide covers installing Debian 12 (Bookworm) on Raspberry Pi 4 with optimal
 
 ### Required Hardware
 - Raspberry Pi 4 (4GB+ RAM, 8GB recommended)
+- Raspberry Pi 3B+ or newer (ARM64/aarch64 required)
 - microSD card reader
 - microSD card 32GB+ (64GB+ recommended)
 - USB-C power supply (2.5A+)
@@ -32,19 +33,42 @@ This guide covers installing Debian 12 (Bookworm) on Raspberry Pi 4 with optimal
 - SSH client (built into Linux/Mac, built into Windows 10+)
 - Or: `dd` command if you're comfortable with Linux
 
+### Important Notes
+- Rocky Linux requires ARM64 (aarch64) architecture
+- Works on Pi 3B+, 4, 400, 5, and 500
+- Does NOT work on Pi 1 or 2 (32-bit only)
+
 ---
 
-## Step 1: Download Debian Image
+## Step 1: Download Rocky Linux Image
 
-1. Visit [Raspberry Pi Debian Images](https://www.raspberrypi.com/software/)
-2. Download **Debian 12 (Bookworm)** for Raspberry Pi 4
-   - Look for: `debian-12-generic-arm64+raspi.img.xz` or similar
-   - Size: ~300-500MB
+1. Visit [Rocky Linux Downloads](https://rockylinux.org/download/)
+2. Look for **Raspberry Pi Images** section
+3. Download **Rocky Linux 9 (aarch64)** for Raspberry Pi
+   - Look for: `Rocky-9-Raspberry-Pi-Ostree.aarch64.img.xz` or similar
+   - Size: ~400-600MB
 
-**Alternative Direct Download:**
+**Direct Download Options:**
 ```bash
-# On your control machine
-wget https://raspi.debian.net/verified/debian-bookworm-arm64-rpi.img.xz
+# Option 1: Official Rocky Linux repository
+wget https://dl.rockylinux.org/pub/rocky/9/images/aarch64/Rocky-9-Raspberry-Pi.img.gz
+
+# Option 2: Alternative mirror
+# Check: https://rockylinux.org/download/ for latest version
+
+# After download, extract
+gunzip Rocky-9-Raspberry-Pi.img.gz
+# or
+xz -d Rocky-9-Raspberry-Pi.img.xz
+```
+
+**Verify Download:**
+```bash
+# Check file size
+ls -lh Rocky-9-Raspberry-Pi.img*
+
+# Verify integrity (if checksum provided)
+sha256sum Rocky-9-Raspberry-Pi.img
 ```
 
 ---
@@ -103,7 +127,10 @@ nmap -sn 192.168.1.0/24  # Adjust for your network range
 
 # SSH into the Pi
 ssh root@<pi-ip-address>
-# Default password: raspberry
+# Default password varies (may be 'rocky' or empty on first boot)
+
+# Or use the rocky user (default on some builds)
+ssh rocky@<pi-ip-address>
 ```
 
 ### Option B: With HDMI Monitor
@@ -123,8 +150,9 @@ Run these commands on the Raspberry Pi:
 # Login as root (if not already)
 sudo su -
 
-# Update system
-apt update && apt upgrade -y
+# Update system (dnf for Rocky Linux)
+dnf update -y
+dnf upgrade -y
 
 # Change hostname (replace "rpi-master" with your choice)
 hostnamectl set-hostname rpi-master
@@ -135,38 +163,65 @@ passwd
 # Enter new password twice
 
 # Create a regular user (for security)
-useradd -m -G sudo -s /bin/bash debian
-passwd debian
-# Enter password for debian user
+useradd -m -G wheel -s /bin/bash rocky
+passwd rocky
+# Enter password for rocky user
+
+# Configure sudoers for new user (Rocky uses 'wheel' group)
+# Check if already configured
+grep wheel /etc/sudoers
 
 # Configure static IP (if using Ethernet)
-# Edit /etc/network/interfaces or use netplan
+# Edit /etc/network/interfaces or use nmcli (NetworkManager)
 ```
 
-### Configure Static IP (Recommended)
+### Configure Static IP (Recommended - Using nmcli)
 
-Edit `/etc/network/interfaces`:
+Rocky Linux uses NetworkManager by default. Configure with nmcli:
 
 ```bash
-nano /etc/network/interfaces
+# List network connections
+nmcli connection show
+
+# Create static IP connection
+nmcli connection add type ethernet con-name ethernet-static \
+  ifname eth0 \
+  ip4 192.168.1.100/24 \
+  gw4 192.168.1.1
+
+# Set DNS servers
+nmcli connection modify ethernet-static \
+  ipv4.dns "8.8.8.8 8.8.4.4"
+
+# Activate connection
+nmcli connection up ethernet-static
+
+# Verify
+ip addr show eth0
 ```
 
-Add to the file:
+**Alternative: Edit Network Config File**
 
+```bash
+# Edit connection config
+sudo nano /etc/NetworkManager/conf.d/99-custom.conf
+
+# Or edit connection file directly
+sudo nano /etc/NetworkManager/system-connections/ethernet-static.nmconnection
 ```
-# Ethernet
-auto eth0
-iface eth0 inet static
-    address 192.168.1.100
-    netmask 255.255.255.0
-    gateway 192.168.1.1
-    dns-nameservers 8.8.8.8 8.8.4.4
+
+Add:
+```
+[ipv4]
+method=manual
+address1=192.168.1.100/24,192.168.1.1
+dns=8.8.8.8;8.8.4.4;
 ```
 
 Restart networking:
 
 ```bash
-systemctl restart networking
+sudo systemctl restart NetworkManager
 # or reboot
 reboot
 ```
@@ -181,11 +236,15 @@ On your **control machine**, set up passwordless SSH:
 # Generate SSH key (if you don't have one)
 ssh-keygen -t ed25519 -C "your-email@example.com"
 
-# Copy public key to Raspberry Pi
-ssh-copy-id -i ~/.ssh/id_ed25519.pub debian@<pi-ip>
+# Copy public key to Raspberry Pi (using 'rocky' user for Rocky Linux)
+ssh-copy-id -i ~/.ssh/id_ed25519.pub rocky@<pi-ip>
 
 # Test passwordless login
-ssh debian@<pi-ip>
+ssh rocky@<pi-ip>
+
+# Or if root is available
+ssh-copy-id -i ~/.ssh/id_ed25519.pub root@<pi-ip>
+ssh root@<pi-ip>
 ```
 
 ---
@@ -228,7 +287,11 @@ After reboot, verify everything is working:
 ```bash
 # Check system info
 uname -a
-# Should show: Linux arm64 (or aarch64)
+# Should show: Linux ... aarch64 ... (Rocky Linux)
+
+# Check system release
+cat /etc/os-release
+# Should show: Rocky Linux 9
 
 # Check memory
 free -h
@@ -242,9 +305,16 @@ df -h
 ip addr
 # Should show IP address(es)
 
-# Check cgroups
+# Check cgroups (required for K3s)
 cat /proc/cmdline | grep cgroup
 # Should show: cgroup_memory=1 cgroup_enable=memory
+
+# Verify firewall status
+sudo systemctl status firewalld
+# Should be: active (running)
+
+# List firewall zones
+sudo firewall-cmd --list-all
 ```
 
 ---
@@ -289,11 +359,16 @@ For each additional Pi you want in your cluster:
 ⚠️ **Important:** This is a fresh system. Before going production:
 
 - Change root password
-- Create regular user account
+- Create regular user account (rocky or custom)
 - Set up SSH keys
 - Disable SSH password login (covered in Ansible playbooks)
-- Configure firewall (also in Ansible playbooks)
-- Keep system updated: `sudo apt update && sudo apt upgrade`
+- Configure firewall with firewalld (also in Ansible playbooks)
+- Keep system updated: `sudo dnf update -y && sudo dnf upgrade -y`
+- Disable SELinux if needed for easier testing (can be re-enabled later)
+  ```bash
+  sudo setenforce 0  # Temporarily
+  # Or edit /etc/selinux/config for permanent change
+  ```
 
 ---
 
@@ -308,16 +383,20 @@ Once you have Debian installed and SSH access working on at least one Raspberry 
 
 | Command | Purpose |
 |---------|---------|
-| `ssh debian@<ip>` | Connect to Pi |
+| `ssh rocky@<ip>` | Connect to Pi |
 | `hostnamectl set-hostname NAME` | Change hostname |
 | `passwd` | Change password |
 | `sudo reboot` | Restart Pi |
-| `systemctl restart networking` | Restart network |
+| `sudo systemctl restart NetworkManager` | Restart network |
+| `nmcli connection show` | Show network connections |
+| `sudo firewall-cmd --list-all` | Show firewall rules |
 | `ip addr` | Show IP addresses |
 | `df -h` | Show disk usage |
 | `free -h` | Show memory usage |
+| `dnf update -y` | Update all packages |
+| `sudo setenforce 0` | Disable SELinux (temporary) |
 
 ---
 
-**Status:** Debian installation and basic configuration complete
+**Status:** Rocky Linux installation and basic configuration complete
 **Next:** Ansible setup and cluster provisioning

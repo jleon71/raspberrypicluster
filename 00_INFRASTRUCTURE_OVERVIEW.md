@@ -3,10 +3,12 @@
 ## Project Overview
 
 This guide provides a complete, free infrastructure automation framework for managing a Raspberry Pi 4 cluster running:
-- **Debian OS** (lightweight and reliable)
+- **Rocky Linux 9** (ARM64/aarch64, enterprise-ready)
 - **K3s** (lightweight Kubernetes)
 - **Grafana** (monitoring and visualization)
 - **Cloudflare Agent** (DNS and network connectivity)
+
+**Alternative OS:** This guide originally supported Debian but has been updated to use Rocky Linux. See troubleshooting section if you need Debian version.
 
 **Cost:** Completely free (uses open-source tools and free tiers)
 **Scalability:** Designed to grow from 1-3 devices to 10+ with minimal changes
@@ -46,9 +48,11 @@ This guide provides a complete, free infrastructure automation framework for man
 ## Free Tools & Services Used
 
 ### Infrastructure Automation
-- **Ansible** - Infrastructure as Code (IaC) for configuration management
+- **Ansible** - Infrastructure as Code (IaC) with dnf and firewalld
 - **Docker/Containerd** - Container runtime (K3s uses containerd)
 - **K3s** - Lightweight Kubernetes distribution (free, minimal resources)
+- **dnf** - Rocky Linux package manager (replaces apt)
+- **firewalld** - Rocky Linux firewall management
 
 ### Monitoring & Observability
 - **Grafana** - Open-source dashboards and visualization
@@ -57,7 +61,8 @@ This guide provides a complete, free infrastructure automation framework for man
 
 ### Networking & DNS
 - **Cloudflare Agent** - Free DNS, DDoS protection, and edge connectivity
-- **Wireguard** - VPN for secure cluster communication (optional)
+- **firewalld** - Advanced firewall with rule management
+- **SELinux** - Optional enhanced security (permissive by default)
 
 ### Version Control & Documentation
 - **Git/GitHub** - Free repository for your infrastructure code

@@ -1,10 +1,12 @@
-# Phase 2: Ansible Setup & Infrastructure Automation
+# Phase 2: Ansible Setup & Infrastructure Automation (Rocky Linux)
 
 ## Overview
 
-Ansible allows you to configure all your Raspberry Pis automatically from your control machine. This is the foundation for scalable infrastructure.
+Ansible allows you to configure all your Rocky Linux Raspberry Pis automatically from your control machine. This is the foundation for scalable infrastructure.
 
 **Estimated Time:** 45 minutes - 1 hour
+
+**Note:** This guide uses dnf package manager and firewalld (Rocky Linux defaults)
 
 ---
 
@@ -89,12 +91,14 @@ echo "group_vars/*/secrets.yml" >> .gitignore
 Create `inventory/hosts.ini`:
 
 ```ini
-# Raspberry Pi Cluster Inventory
+# Rocky Linux Raspberry Pi Cluster Inventory
 
 [all:vars]
-ansible_user=debian
+ansible_user=rocky
 ansible_ssh_private_key_file=~/.ssh/id_ed25519
 ansible_python_interpreter=/usr/bin/python3
+ansible_become=True
+ansible_become_method=sudo
 
 [masters]
 rpi-master ansible_host=192.168.1.100 node_type=master
@@ -113,9 +117,10 @@ rpi-master
 
 **Adjust:**
 - IP addresses to match your Pis
-- `ansible_user` if you use a different username
+- `ansible_user` (changed to 'rocky' for Rocky Linux)
 - SSH key path if needed
 - Add/remove worker nodes as needed
+- Note: `ansible_become=True` enables sudo access for all tasks
 
 ---
 
@@ -141,31 +146,25 @@ If you get connection errors:
 
 ## Step 5: Create Basic Playbooks
 
-### 5.1 Common Configuration Playbook
+### 5.1 Common Configuration Playbook (Rocky Linux)
 
 Create `playbooks/01-common.yml`:
 
 ```yaml
 ---
-- name: Common Configuration for All Raspberry Pis
+- name: Common Configuration for Rocky Linux Raspberry Pis
   hosts: all
   become: yes
   gather_facts: yes
 
   tasks:
-    - name: Update package lists
-      apt:
-        update_cache: yes
-        cache_valid_time: 3600
+    - name: Update package lists and upgrade system (dnf)
+      dnf:
+        name: "*"
+        state: latest
 
-    - name: Upgrade system packages
-      apt:
-        upgrade: dist
-        autoremove: yes
-        autoclean: yes
-
-    - name: Install essential packages
-      apt:
+    - name: Install essential packages (dnf)
+      dnf:
         name:
           - curl
           - wget
@@ -175,10 +174,12 @@ Create `playbooks/01-common.yml`:
           - vim
           - nano
           - openssh-server
-          - openssh-client
+          - openssh-clients
           - python3-pip
-          - python3-dev
-          - build-essential
+          - python3-devel
+          - gcc
+          - make
+          - openssl-devel
         state: present
 
     - name: Configure SSH key authentication (disable password)
@@ -189,15 +190,15 @@ Create `playbooks/01-common.yml`:
       notify: Restart SSH
 
     - name: Enable SSH
-      service:
-        name: ssh
+      systemd:
+        name: sshd
         state: started
         enabled: yes
 
-    - name: Configure sudo without password for debian user
+    - name: Configure sudoers for wheel group (Rocky Linux default)
       lineinfile:
         path: /etc/sudoers
-        line: 'debian ALL=(ALL) NOPASSWD:ALL'
+        line: '%wheel ALL=(ALL) NOPASSWD:ALL'
         validate: '/usr/sbin/visudo -cf %s'
 
     - name: Set timezone
@@ -205,23 +206,23 @@ Create `playbooks/01-common.yml`:
         name: UTC
       # Change to: America/New_York, Europe/London, etc.
 
-    - name: Configure UFW firewall
-      apt:
-        name: ufw
-        state: present
-      when: ansible_os_family == "Debian"
-
-    - name: Enable UFW
-      ufw:
-        state: enabled
-        default: deny
-        direction: incoming
+    - name: Enable firewalld (Rocky Linux firewall)
+      systemd:
+        name: firewalld
+        state: started
+        enabled: yes
 
     - name: Allow SSH through firewall
-      ufw:
-        rule: allow
-        port: '22'
-        proto: tcp
+      firewalld:
+        service: ssh
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - name: Disable SELinux temporarily (for easier K3s setup)
+      selinux:
+        state: permissive
+      register: selinux_status
 
     - name: Create system monitoring directory
       file:
@@ -229,14 +230,25 @@ Create `playbooks/01-common.yml`:
         state: directory
         mode: '0755'
 
+    - name: Update kernel parameters for K3s
+      sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        state: present
+        sysctl_set: yes
+      loop:
+        - { key: "net.ipv4.ip_forward", value: "1" }
+        - { key: "net.bridge.bridge-nf-call-iptables", value: "1" }
+        - { key: "net.bridge.bridge-nf-call-ip6tables", value: "1" }
+
   handlers:
     - name: Restart SSH
-      service:
-        name: ssh
+      systemd:
+        name: sshd
         state: restarted
 ```
 
-### 5.2 K3s Installation Playbook
+### 5.2 K3s Installation Playbook (Rocky Linux)
 
 Create `playbooks/02-k3s.yml`:
 
@@ -320,18 +332,27 @@ Create `playbooks/02-k3s.yml`:
         - not k3s_binary.stat.exists
         - "'workers' in group_names"
 
-    - name: Allow K3s API port through firewall
-      ufw:
-        rule: allow
-        port: '6443'
-        proto: tcp
+    - name: Allow K3s API port through firewall (firewalld)
+      firewalld:
+        port: 6443/tcp
+        permanent: yes
+        state: enabled
+        immediate: yes
       when: "'masters' in group_names"
 
-    - name: Allow node ports through firewall
-      ufw:
-        rule: allow
-        port: '10250'
-        proto: tcp
+    - name: Allow node ports through firewall (firewalld)
+      firewalld:
+        port: 10250/tcp
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - name: Allow kubelet API through firewall
+      firewalld:
+        port: 10255/tcp
+        permanent: yes
+        state: enabled
+        immediate: yes
 
     - name: Copy kubeconfig to control machine (optional)
       fetch:
@@ -419,16 +440,19 @@ Create `ansible.cfg` in your project root:
 ```ini
 [defaults]
 inventory = inventory/hosts.ini
-remote_user = debian
+remote_user = rocky
 private_key_file = ~/.ssh/id_ed25519
 host_key_checking = False
 retry_files_enabled = False
 log_path = ansible.log
+roles_path = ./roles
+collections_paths = ~/.ansible/collections
 
 [privilege_escalation]
 become = True
 become_method = sudo
 become_user = root
+become_ask_pass = False
 ```
 
 Now you can run playbooks without specifying inventory:

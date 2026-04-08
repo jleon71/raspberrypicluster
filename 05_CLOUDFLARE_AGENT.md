@@ -1,10 +1,12 @@
-# Phase 5: Cloudflare Agent Configuration
+# Phase 5: Cloudflare Agent Configuration (Rocky Linux)
 
 ## Overview
 
-Set up Cloudflare Agent to provide DNS, DDoS protection, and edge connectivity for your Raspberry Pi cluster.
+Set up Cloudflare Agent to provide DNS, DDoS protection, and edge connectivity for your Rocky Linux Raspberry Pi cluster.
 
 **Estimated Time:** 45 minutes - 1 hour
+
+**Note:** This guide works identically for Rocky Linux as Cloudflare Agent is platform-agnostic
 
 ---
 

@@ -1,8 +1,8 @@
-# Phase 6: Scaling Your Infrastructure
+# Phase 6: Scaling Your Infrastructure (Rocky Linux)
 
 ## Overview
 
-Scale your Raspberry Pi cluster from 1-3 nodes to 10+ nodes efficiently using automation.
+Scale your Rocky Linux Raspberry Pi cluster from 1-3 nodes to 10+ nodes efficiently using automation.
 
 **Estimated Time:** Varies (mostly waiting for hardware)
 
@@ -155,7 +155,13 @@ LoadBalancer (Virtual IP)
         +-- Worker 1-N
 ```
 
-### 4.2 Setup HA with Keepalived
+### 4.2 Setup HA with Keepalived (Rocky Linux)
+
+Install keepalived with dnf:
+
+```bash
+ansible all -m dnf -a "name=keepalived state=present"
+```
 
 Create `playbooks/03-k3s-ha.yml`:
 
@@ -514,9 +520,9 @@ sudo /usr/local/bin/k3s-agent-uninstall.sh
 
 ## Step 10: Performance Optimization for Large Clusters
 
-### 10.1 Tune K3s for Scale
+### 10.1 Tune K3s for Scale (Rocky Linux)
 
-Update K3s configuration on all nodes:
+Update K3s configuration on all nodes with dnf and sysctl:
 
 Create `playbooks/tune-k3s.yml`:
 

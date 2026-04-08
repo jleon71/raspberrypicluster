@@ -1,10 +1,12 @@
-# Phase 7: Backup and Disaster Recovery
+# Phase 7: Backup and Disaster Recovery (Rocky Linux)
 
 ## Overview
 
-Protect your cluster data with comprehensive backup and recovery strategies.
+Protect your Rocky Linux cluster data with comprehensive backup and recovery strategies.
 
 **Estimated Time:** 45 minutes setup + ongoing maintenance
+
+**Note:** Backup procedures are OS-agnostic and work identically on Rocky Linux
 
 ---
 

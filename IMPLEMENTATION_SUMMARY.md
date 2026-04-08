@@ -1,8 +1,10 @@
-# Implementation Summary - Raspberry Pi K3s Cluster
+# Implementation Summary - Raspberry Pi K3s Cluster (Rocky Linux)
 
 ## What You've Received
 
-A **complete, production-ready infrastructure framework** for managing Raspberry Pi clusters with Kubernetes, monitoring, and networking. **Total software cost: $0 forever.**
+A **complete, production-ready infrastructure framework** for managing Rocky Linux Raspberry Pi clusters with Kubernetes, monitoring, and networking. **Total software cost: $0 forever.**
+
+**OS:** This guide now uses **Rocky Linux 9** (enterprise-ready) instead of Debian
 
 ---
 
@@ -14,8 +16,8 @@ A **complete, production-ready infrastructure framework** for managing Raspberry
 |----------|---------|------|
 | **README.md** | Quick start and overview | Start here |
 | **00_INFRASTRUCTURE_OVERVIEW.md** | Architecture, costs, principles | 30 min read |
-| **01_DEBIAN_INSTALLATION.md** | OS setup on Raspberry Pi 4 | 1-2 hours |
-| **02_ANSIBLE_SETUP.md** | Automation infrastructure | 45 min - 1 hour |
+| **01_DEBIAN_INSTALLATION.md** | Rocky Linux OS setup on Pi 4 | 1-2 hours |
+| **02_ANSIBLE_SETUP.md** | Automation with dnf & firewalld | 45 min - 1 hour |
 | **03_K3S_DEPLOYMENT.md** | Kubernetes configuration | 1-2 hours |
 | **04_PROMETHEUS_GRAFANA.md** | Monitoring and dashboards | 1-2 hours |
 | **05_CLOUDFLARE_AGENT.md** | DNS, security, networking | 45 min - 1 hour |
