@@ -13,8 +13,8 @@ Welcome to your complete infrastructure automation framework! This guide provide
 ### Complete Documentation (7 Phases)
 
 1. **00_INFRASTRUCTURE_OVERVIEW.md** - Architecture and cost analysis
-2. **01_DEBIAN_INSTALLATION.md** - OS setup on Raspberry Pi
-3. **02_ANSIBLE_SETUP.md** - Infrastructure automation
+2. **01_DEBIAN_INSTALLATION.md** (Legacy) / **START_HERE_ROCKY_LINUX.md** (Current) - OS setup on Raspberry Pi
+3. **02_ANSIBLE_SETUP.md** or **02_ANSIBLE_SETUP_QNAP_VIRTUALIZATION.md** - Infrastructure automation
 4. **03_K3S_DEPLOYMENT.md** - Kubernetes cluster configuration
 5. **04_PROMETHEUS_GRAFANA.md** - Monitoring and visualization
 6. **05_CLOUDFLARE_AGENT.md** - DNS, security, and edge connectivity

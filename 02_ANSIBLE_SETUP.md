@@ -22,7 +22,7 @@ Ansible allows you to configure all your Rocky Linux Raspberry Pis automatically
 
 ## Prerequisites
 
-- At least one Raspberry Pi running Debian (from Phase 1)
+- At least one Raspberry Pi running Rocky Linux (from Phase 1)
 - SSH access to your Pi(s)
 - Control machine with Python 3.8+
 
@@ -30,11 +30,11 @@ Ansible allows you to configure all your Rocky Linux Raspberry Pis automatically
 
 ## Step 1: Install Ansible
 
-### Linux (Ubuntu/Debian)
+### Linux (Rocky Linux/RHEL-based)
 
 ```bash
-sudo apt update
-sudo apt install -y ansible
+sudo dnf update -y
+sudo dnf install -y ansible
 ```
 
 ### macOS
@@ -50,7 +50,7 @@ pip install ansible
 ### Windows (WSL2)
 
 ```bash
-# In WSL2 terminal
+# In WSL2 terminal (Ubuntu/Debian based)
 sudo apt update
 sudo apt install -y ansible
 ```
@@ -139,7 +139,7 @@ ansible all -i inventory/hosts.ini -m ping
 
 If you get connection errors:
 - Check IP addresses in inventory
-- Verify SSH access: `ssh debian@<ip>`
+- Verify SSH access: `ssh rocky@<ip>`
 - Ensure SSH key is accessible
 
 ---
@@ -269,19 +269,15 @@ Create `playbooks/02-k3s.yml`:
       failed_when: cgroup_check.rc != 0
 
     - name: Install K3s dependencies
-      apt:
+      dnf:
         name:
           - curl
           - wget
-          - apparmor
-          - apparmor-utils
           - conntrack
           - ebtables
           - ethtool
           - iptables
           - kmod
-          - libnetfilter-conntrack-3
-          - libnetfilter-queue-1
           - util-linux
         state: present
 
@@ -403,7 +399,7 @@ Once K3s is installed:
 
 ```bash
 # SSH into master node
-ssh debian@192.168.1.100
+ssh rocky@192.168.1.100
 
 # Check cluster nodes
 sudo k3s kubectl get nodes
@@ -513,7 +509,7 @@ That's it! The new node automatically joins the cluster.
 ### Connection refused
 ```bash
 # Verify SSH works
-ssh debian@<ip> "echo success"
+ssh rocky@<ip> "echo success"
 
 # Check key permissions
 ls -la ~/.ssh/id_ed25519
@@ -523,7 +519,7 @@ ls -la ~/.ssh/id_ed25519
 ### K3s installation fails
 ```bash
 # Check manually
-ssh debian@<ip>
+ssh rocky@<ip>
 sudo bash -c 'curl -sfL https://get.k3s.io | sh -'
 
 # View logs

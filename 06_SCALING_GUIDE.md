@@ -100,7 +100,7 @@ Edit `inventory/hosts.ini`:
 
 ```ini
 [all:vars]
-ansible_user=debian
+ansible_user=rocky
 ansible_ssh_private_key_file=~/.ssh/id_ed25519
 ansible_python_interpreter=/usr/bin/python3
 
@@ -133,7 +133,7 @@ ansible-playbook playbooks/01-common.yml -i inventory/hosts.ini --limit new-node
 ansible-playbook playbooks/02-k3s.yml -i inventory/hosts.ini --limit new-node
 
 # Verify node joined cluster
-ssh debian@192.168.1.100
+ssh rocky@192.168.1.100
 sudo k3s kubectl get nodes
 ```
 
@@ -270,7 +270,7 @@ ansible-playbook playbooks/02-k3s.yml --limit rpi-master-3
 ansible-playbook playbooks/03-k3s-ha.yml
 
 # Verify
-ssh debian@192.168.1.100
+ssh rocky@192.168.1.100
 sudo k3s kubectl get nodes
 ```
 
@@ -512,7 +512,7 @@ kubectl uncordon rpi-worker-1
 kubectl delete node rpi-worker-1
 
 # On the node itself, reset K3s
-ssh debian@192.168.1.110
+ssh rocky@192.168.1.110
 sudo /usr/local/bin/k3s-agent-uninstall.sh
 ```
 
@@ -586,7 +586,7 @@ prometheus:
 
 - [ ] Plan network IPs and subnets
 - [ ] Prepare new hardware (Pis, power supplies, SD cards)
-- [ ] Flash Debian images
+- [ ] Flash Rocky Linux images
 - [ ] Update Ansible inventory
 - [ ] Run Ansible playbooks
 - [ ] Verify nodes joined cluster
@@ -604,7 +604,7 @@ prometheus:
 
 ```bash
 # Check K3s logs
-ssh debian@<new-node-ip>
+ssh rocky@<new-node-ip>
 sudo journalctl -u k3s-agent -n 50
 
 # Verify connectivity to master
@@ -618,7 +618,7 @@ cat /var/lib/rancher/k3s/agent/token
 
 ```bash
 # Check etcd size (only on master)
-ssh debian@192.168.1.100
+ssh rocky@192.168.1.100
 sudo k3s kubectl get etcdctl | head -20
 
 # Compact etcd if needed
@@ -633,7 +633,7 @@ sudo k3s kubectl exec -n kube-system -it etcd-rpi-master -- \
 kubectl edit deployment kube-apiserver -n kube-system
 
 # Or update K3s service
-ssh debian@192.168.1.100
+ssh rocky@192.168.1.100
 sudo nano /etc/systemd/system/k3s.service
 # Add: --kube-apiserver-arg=etcd-compaction-interval=5m
 ```

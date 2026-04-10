@@ -247,7 +247,7 @@ kubectl get all
 kubectl get ingress
 
 # Test from master node
-ssh debian@192.168.1.100
+ssh rocky@192.168.1.100
 curl http://test-app.local
 # or
 curl http://localhost:80
@@ -443,7 +443,7 @@ kubectl logs -n applications -l app=hello-world -f
 # Test from control machine
 curl http://hello.local
 # or from cluster
-ssh debian@192.168.1.100
+ssh rocky@192.168.1.100
 curl http://hello.local
 ```
 
@@ -578,7 +578,7 @@ cp ~/.kube/config-rpi $BACKUP_DIR/kubeconfig-$DATE.yaml
 kubectl get all --all-namespaces -o yaml > $BACKUP_DIR/all-resources-$DATE.yaml
 
 # Backup etcd from master
-ssh debian@192.168.1.100 "sudo k3s kubectl get all --all-namespaces -o yaml" > $BACKUP_DIR/master-backup-$DATE.yaml
+ssh rocky@192.168.1.100 "sudo k3s kubectl get all --all-namespaces -o yaml" > $BACKUP_DIR/master-backup-$DATE.yaml
 
 # Create tarball
 tar -czf $BACKUP_DIR/k3s-backup-$DATE.tar.gz -C $BACKUP_DIR kubeconfig-$DATE.yaml all-resources-$DATE.yaml master-backup-$DATE.yaml
@@ -650,7 +650,7 @@ watch kubectl get pods -A
 watch kubectl top nodes
 
 # Check K3s service logs on master
-ssh debian@192.168.1.100
+ssh rocky@192.168.1.100
 sudo journalctl -u k3s -f
 
 # Check K3s agent logs on workers
