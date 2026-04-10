@@ -14,7 +14,7 @@ This guide covers how to scale your cluster, automate routine tasks, and maintai
 
 ```bash
 # On the new Raspberry Pi:
-# 1. Install Rocky Linux (follow 01_DEBIAN_INSTALLATION.md)
+# 1. Install Rocky Linux (follow START_HERE_ROCKY_LINUX.md or ROCKY_LINUX_MIGRATION_GUIDE.md)
 # 2. SSH into the new node
 ssh rocky@<new-node-ip>
 

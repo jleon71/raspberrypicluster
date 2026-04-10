@@ -51,7 +51,7 @@ On the master node:
 
 ```bash
 # SSH to master
-ssh debian@192.168.1.100
+ssh rocky@192.168.1.100
 
 # Create backup directory
 mkdir -p ~/k3s-backups
@@ -103,7 +103,7 @@ mkdir -p $BACKUP_DIR
 
 # Copy from master node
 echo "Fetching etcd snapshots from master..."
-scp -r debian@192.168.1.100:/var/lib/rancher/k3s/server/db/snapshots/* \
+scp -r rocky@192.168.1.100:/var/lib/rancher/k3s/server/db/snapshots/* \
     $BACKUP_DIR/
 
 # Upload to remote server
@@ -305,7 +305,7 @@ echo "Backup directory: $BACKUP_DIR"
 
 # 1. Backup etcd
 echo "1. Backing up etcd..."
-scp -r debian@192.168.1.100:/var/lib/rancher/k3s/server/db/snapshots/* \
+scp -r rocky@192.168.1.100:/var/lib/rancher/k3s/server/db/snapshots/* \
     $BACKUP_DIR/etcd/ 2>/dev/null || mkdir -p $BACKUP_DIR/etcd
 
 # 2. Backup Kubernetes resources
@@ -362,8 +362,8 @@ cat > $BACKUP_DIR/BACKUP_INDEX.md << EOF
 
 ### Restore etcd
 \`\`\`bash
-scp etcd/* debian@192.168.1.100:/var/lib/rancher/k3s/server/db/snapshots/
-ssh debian@192.168.1.100
+scp etcd/* rocky@192.168.1.100:/var/lib/rancher/k3s/server/db/snapshots/
+ssh rocky@192.168.1.100
 sudo systemctl stop k3s
 sudo k3s etcd-snapshot restore <snapshot-name>
 sudo systemctl start k3s
@@ -437,7 +437,7 @@ crontab -e
 
 ```bash
 # SSH to master
-ssh debian@192.168.1.100
+ssh rocky@192.168.1.100
 
 # List available snapshots
 sudo k3s etcd-snapshot list
@@ -462,8 +462,8 @@ ansible-playbook playbooks/01-common.yml --limit test-node
 ansible-playbook playbooks/02-k3s.yml --limit test-node
 
 # 2. Restore etcd
-scp backup/etcd/snapshot debian@test-node:/tmp/
-ssh debian@test-node
+scp backup/etcd/snapshot rocky@test-node:/tmp/
+ssh rocky@test-node
 sudo k3s etcd-snapshot restore --etcd-snapshot-dir=/tmp/ snapshot
 
 # 3. Restore resources
@@ -518,8 +518,8 @@ Create `docs/DISASTER_RECOVERY_RUNBOOK.md`:
 
 2. Use backup to restore:
    \`\`\`bash
-   scp backup/etcd/snapshot debian@192.168.1.100:/tmp/
-   ssh debian@192.168.1.100
+   scp backup/etcd/snapshot rocky@192.168.1.100:/tmp/
+   ssh rocky@192.168.1.100
    sudo systemctl stop k3s
    sudo k3s etcd-snapshot restore --etcd-snapshot-dir=/tmp/ snapshot
    sudo systemctl start k3s
@@ -545,7 +545,7 @@ Create `docs/DISASTER_RECOVERY_RUNBOOK.md`:
 3. Restore from backup:
    \`\`\`bash
    # Restore etcd on master
-   scp backup/etcd/snapshot debian@192.168.1.100:/tmp/
+   scp backup/etcd/snapshot rocky@192.168.1.100:/tmp/
    sudo k3s etcd-snapshot restore ...
 
    # Restore resources

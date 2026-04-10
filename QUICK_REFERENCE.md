@@ -137,7 +137,7 @@ curl http://prometheus-operated.monitoring.svc.cluster.local:9090/api/v1/targets
 ls -lh ~/backups/
 
 # Restore etcd
-scp backup/etcd/snapshot debian@192.168.1.100:/tmp/
+scp backup/etcd/snapshot rocky@192.168.1.100:/tmp/
 sudo k3s etcd-snapshot restore ...
 
 # Restore resources
@@ -327,7 +327,7 @@ sudo /usr/local/bin/k3s-agent-uninstall.sh
 kubectl get nodes
 
 # Or manually update
-ssh debian@192.168.1.100
+ssh rocky@192.168.1.100
 sudo systemctl stop k3s
 # Use installer
 curl -sfL https://get.k3s.io | sh -
@@ -502,10 +502,10 @@ export CF_ACCOUNT_ID="your-account-id"
 ### Complete Cluster Failure
 ```bash
 # 1. Check power and network
-ssh debian@192.168.1.100 "echo OK"
+ssh rocky@192.168.1.100 "echo OK"
 
 # 2. Restart master
-ssh debian@192.168.1.100
+ssh rocky@192.168.1.100
 sudo systemctl restart k3s
 
 # 3. Restart workers (if needed)

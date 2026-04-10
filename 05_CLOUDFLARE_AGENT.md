@@ -287,7 +287,7 @@ For your internal cluster:
 
 ```bash
 # On master node
-ssh debian@192.168.1.100
+ssh rocky@192.168.1.100
 
 # Generate certificate
 sudo openssl req -x509 -nodes -days 365 \
